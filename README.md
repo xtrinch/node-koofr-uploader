@@ -6,3 +6,4 @@ Then it deletes files older than specified in the config.
 
 ## Usage
 - copy `.env.example` to `.env` so that dotenv can pick up your env variables
+- run with `npm run start`
