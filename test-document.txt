@@ -1,0 +1,2 @@
+I am a test document
+And this is a new version of it
