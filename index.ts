@@ -16,9 +16,13 @@ interface KoofrFile {
   tags: any,
 }
 
-var client = new Koofr(process.env.KOOFR_API_BASE);
-
 async function funWithKoofr() {
+  if (!process.env.KOOFR_API_BASE) {
+    console.log("Skipping KOOFR upload");
+    return;
+  }
+
+  const client = new Koofr(process.env.KOOFR_API_BASE);
   await client.authenticate(process.env.KOOFR_EMAIL, process.env.KOOFR_PASSWORD);
 
   // get the mount point
@@ -26,7 +30,7 @@ async function funWithKoofr() {
   const mount = mounts[0];
 
   try {
-    await client.filesMkdir(mount.id, '/', process.env.FOLDER);
+    await client.filesMkdir(mount.id, '/', process.env.KOOFR_FOLDER);
   } catch(e) {
     // folder already exists
   }
@@ -38,18 +42,22 @@ async function funWithKoofr() {
 
   // put the zipped file on koofr
   const stream = fs.createReadStream(`${filename}.tgz`);
-  await client.filesPut(mount.id, `/${process.env.FOLDER}`, `test-document-${format(new Date(), "dd-MM-yyyy")}.tgz`, stream);
+  
+  const createdFilename = `test-document-${format(new Date(), "dd-MM-yyyy")}.tgz`;
+  
+  console.log("Creating file " + createdFilename);
+  await client.filesPut(mount.id, `/${process.env.KOOFR_FOLDER}`, createdFilename, stream);
 
   // list all the files
-  let files: KoofrFile[] = await client.filesList(mount.id, `/${process.env.FOLDER}`);
+  let files: KoofrFile[] = await client.filesList(mount.id, `/${process.env.KOOFR_FOLDER}`);
   console.log(files);
 
   // delete "old" files
   files.map(async (file: KoofrFile) => {
     const dateModified = fromUnixTime(file.modified / 1000);
-    if (differenceInMinutes(new Date(), dateModified) > parseInt(process.env.REMOVE_OLDER_THAN, 10)) {
+    if (differenceInMinutes(new Date(), dateModified) > parseInt(process.env.KOOFR_REMOVE_OLDER_THAN, 10)) {
       console.log("Removing file " + file.name);
-      await client.filesRemove(mount.id, `/${process.env.FOLDER}/${file.name}`);
+      await client.filesRemove(mount.id, `/${process.env.KOOFR_FOLDER}/${file.name}`);
     }
   });
 
