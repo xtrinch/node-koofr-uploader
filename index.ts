@@ -35,7 +35,7 @@ async function funWithKoofr() {
     // folder already exists
   }
 
-  const filename = 'test-document.txt';
+  const filename = process.env.KOOFR_FILENAME;
 
   // create an archive out of the file
   await tar.c({ gzip: true, file: `${filename}.tgz` }, [filename]);
